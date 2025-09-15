@@ -1,0 +1,141 @@
+﻿<Window 
+    x:Class="MSSS.MainWindow"
+    xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+    xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+    xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+    xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+    xmlns:local="clr-namespace:MSSS"
+    mc:Ignorable="d"
+    Title="MSSS Satellite Data Processor"
+    Height="780"
+    Width="1100"
+    WindowStartupLocation="CenterScreen">
+    <Grid>
+        <Grid.Margin>12</Grid.Margin>
+        <Grid.RowDefinitions>
+            <RowDefinition Height="Auto"/>
+            <RowDefinition Height="*"/>
+            <RowDefinition Height="Auto"/>
+        </Grid.RowDefinitions>
+        <Grid.ColumnDefinitions>
+            <ColumnDefinition Width="*"/>
+        </Grid.ColumnDefinitions>
+
+        <!-- Title / Controls -->
+        <StackPanel Orientation="Vertical" Margin="0 0 0 10">
+            <TextBlock Text="MSSS Satellite Data Processor" FontSize="22" FontWeight="Bold"/>
+            <TextBlock Text="Sun‑synchronous sensor readings – Selection/Insertion sort + Binary Search (Iter/Rec)" Foreground="Gray" Margin="0 0 0 6"/>
+            <UniformGrid Columns="6" Rows="2" Margin="0 8 0 0" HorizontalAlignment="Left">
+                <!-- Mu / Sigma numeric inputs (clamped by code) -->
+                <TextBlock Text="Mu (35-75):" VerticalAlignment="Center"/>
+                <TextBox x:Name="tbMu" Width="80" Text="50" HorizontalAlignment="Left"/>
+                <TextBlock Text="Sigma (10-20):" VerticalAlignment="Center"/>
+                <TextBox x:Name="tbSigma" Width="80" Text="10" HorizontalAlignment="Left"/>
+                <Button x:Name="btnLoad" Content="Load 400 Samples" Click="btnLoad_Click"/>
+                <TextBlock Text="Loads Sensor A &amp; B via Galileo6.DLL;" Foreground="Gray" VerticalAlignment="Center"/>
+
+
+                <!-- Search inputs per sensor -->
+                <TextBlock Text="Search A (int):" VerticalAlignment="Center"/>
+                <TextBox x:Name="tbSearchA" Width="100" PreviewTextInput="IntegerOnly_PreviewTextInput" DataObject.Pasting="IntegerOnly_Paste"/>
+                <TextBlock Text="Search B (int):" VerticalAlignment="Center"/>
+                <TextBox x:Name="tbSearchB" Width="100" PreviewTextInput="IntegerOnly_PreviewTextInput" DataObject.Pasting="IntegerOnly_Paste"/>
+                <TextBlock Text=""/>
+                <TextBlock Text=""/>
+            </UniformGrid>
+        </StackPanel>
+        
+        <Grid Grid.Row="1" Margin="0,12,0,0">
+            <Grid.ColumnDefinitions>
+                <ColumnDefinition Width="*"/>
+                <ColumnDefinition Width="2*"/>
+                <ColumnDefinition Width="*"/>
+            </Grid.ColumnDefinitions>
+            
+            <!-- Sensor A ListBox -->
+            <GroupBox Header="Sensor A" Margin="0">
+                <DockPanel>
+                    <StackPanel Orientation="Horizontal" DockPanel.Dock="Top" Margin="0 0 0 8">
+                        <Button x:Name="btnSortASelection" Content="Selection Sort" Click="btnSortASelection_Click" Margin="0 0 6 0"/>
+                        <Button x:Name="btnSortAInsertion" Content="Insertion Sort" Click="btnSortAInsertion_Click" Margin="0 0 6 0"/>
+                        <Button x:Name="btnSearchAIter" Content="Binary Search (Iterative)" Click="btnSearchAIter_Click" Margin="0 0 6 0"/>
+                        <Button x:Name="btnSearchARec" Content="Binary Search (Recursive)" Click="btnSearchARec_Click"/>
+                    </StackPanel>
+
+
+                    <ListBox x:Name="lbSensorA" SelectionMode="Extended"/>
+
+
+                    <StackPanel Orientation="Vertical" Margin="0 8 0 0">
+                        <StackPanel Orientation="Horizontal" Margin="0 0 0 4">
+                            <TextBlock Text="Selection ms:" Width="110"/>
+                            <TextBox x:Name="tbSortASelectionMs" IsReadOnly="True" Width="90"/>
+                        </StackPanel>
+                        <StackPanel Orientation="Horizontal" Margin="0 0 0 4">
+                            <TextBlock Text="Insertion ms:" Width="110"/>
+                            <TextBox x:Name="tbSortAInsertionMs" IsReadOnly="True" Width="90"/>
+                        </StackPanel>
+                        <StackPanel Orientation="Horizontal" Margin="0 0 0 4">
+                            <TextBlock Text="Iter ticks:" Width="110"/>
+                            <TextBox x:Name="tbSearchAIterTicks" IsReadOnly="True" Width="120"/>
+                        </StackPanel>
+                        <StackPanel Orientation="Horizontal">
+                            <TextBlock Text="Rec ticks:" Width="110"/>
+                            <TextBox x:Name="tbSearchARecTicks" IsReadOnly="True" Width="120"/>
+                        </StackPanel>
+                    </StackPanel>
+                </DockPanel>
+            </GroupBox>
+            
+            <!-- Dual ListView showing A/B side-by-side -->
+            <GroupBox Header="Both Sensors (ListView)" Grid.Column="1" Margin="12,0">
+                <DockPanel>
+                    <Button Content="Refresh View" DockPanel.Dock="Top" Margin="0 0 0 8" Click="btnRefreshBoth_Click"/>
+                    <ListView x:Name="lvBothSensors">
+                        <ListView.View>
+                            <GridView>
+                                <GridViewColumn Header="Sensor A" DisplayMemberBinding="{Binding A}" Width="180"/>
+                                <GridViewColumn Header="Sensor B" DisplayMemberBinding="{Binding B}" Width="180"/>
+                            </GridView>
+                        </ListView.View>
+                    </ListView>
+                </DockPanel>
+            </GroupBox>
+            
+            <!-- Sensor B -->
+            <GroupBox Header="Sensor B" Grid.Column="2">
+                <DockPanel>
+                    <StackPanel Orientation="Horizontal" DockPanel.Dock="Top" Margin="0 0 0 8">
+                        <Button x:Name="btnSortBSelection" Content="Selection Sort" Click="btnSortBSelection_Click" Margin="0 0 6 0"/>
+                        <Button x:Name="btnSortBInsertion" Content="Insertion Sort" Click="btnSortBInsertion_Click" Margin="0 0 6 0"/>
+                        <Button x:Name="btnSearchBIter" Content="Binary Search (Iterative)" Click="btnSearchBIter_Click" Margin="0 0 6 0"/>
+                        <Button x:Name="btnSearchBRec" Content="Binary Search (Recursive)" Click="btnSearchBRec_Click"/>
+                    </StackPanel>
+
+
+                    <ListBox x:Name="lbSensorB" SelectionMode="Extended"/>
+
+
+                    <StackPanel Orientation="Vertical" Margin="0 8 0 0">
+                        <StackPanel Orientation="Horizontal" Margin="0 0 0 4">
+                            <TextBlock Text="Selection ms:" Width="110"/>
+                            <TextBox x:Name="tbSortBSelectionMs" IsReadOnly="True" Width="90"/>
+                        </StackPanel>
+                        <StackPanel Orientation="Horizontal" Margin="0 0 0 4">
+                            <TextBlock Text="Insertion ms:" Width="110"/>
+                            <TextBox x:Name="tbSortBInsertionMs" IsReadOnly="True" Width="90"/>
+                        </StackPanel>
+                        <StackPanel Orientation="Horizontal" Margin="0 0 0 4">
+                            <TextBlock Text="Iter ticks:" Width="110"/>
+                            <TextBox x:Name="tbSearchBIterTicks" IsReadOnly="True" Width="120"/>
+                        </StackPanel>
+                        <StackPanel Orientation="Horizontal">
+                            <TextBlock Text="Rec ticks:" Width="110"/>
+                            <TextBox x:Name="tbSearchBRecTicks" IsReadOnly="True" Width="120"/>
+                        </StackPanel>
+                    </StackPanel>
+                </DockPanel>
+            </GroupBox>
+        </Grid>
+    </Grid>
+</Window>
