@@ -1,6 +1,7 @@
-﻿using Galileo6;
+﻿using System;
+using System.Collections.Generic;
 using System.Diagnostics;
-using System.Text;
+using System.Linq;
 using System.Windows;
 using System.Windows.Controls;
 using System.Windows.Data;
@@ -18,8 +19,8 @@ namespace MSSS
     /// </summary>
     public partial class MainWindow : Window
     {
-        private LinkedList<double> _sensorA = new LinkedList<double>();
-        private LinkedList<double> _sensorB = new LinkedList<double>();
+        private readonly SensorDataService _dataService = new();
+        private SensorDataModel _dataModel = new();
         public MainWindow()
         {
 
@@ -34,33 +35,19 @@ namespace MSSS
             tbMu.Text = mu.ToString();
             tbSigma.Text = sigma.ToString();
 
-
-            _sensorA = new LinkedList<double>();
-            _sensorB = new LinkedList<double>();
-
-
-            var reader = new Galileo6.ReadData();
-
-
             // Generate 400 samples per sensor from the DLL (rounded to 4 decimals by the DLL)
-            int size = 400;
-            for (int i = 0; i < size; i++)
-            {
-                double a = reader.SensorA(mu, sigma);
-                double b = reader.SensorB(mu, sigma);
-                _sensorA.AddLast(a);
-                _sensorB.AddLast(b);
-            }
+            const int size = 400;
+            _dataModel = _dataService.Load(mu, sigma, size);
         }
         private void ShowAllSensorData()
         {
             // For display only – allowed to construct a temporary list of anonymous rows
-            int max = Math.Max(_sensorA.Count, _sensorB.Count);
+            int max = Math.Max(_dataModel.SensorA.Count, _dataModel.SensorB.Count);
             var rows = new List<object>(max);
             for (int i = 0; i < max; i++)
             {
-                double? a = i < _sensorA.Count ? _sensorA.ElementAt(i) : (double?)null;
-                double? b = i < _sensorB.Count ? _sensorB.ElementAt(i) : (double?)null;
+                double? a = i < _dataModel.SensorA.Count ? _dataModel.SensorA.ElementAt(i) : (double?)null;
+                double? b = i < _dataModel.SensorB.Count ? _dataModel.SensorB.ElementAt(i) : (double?)null;
                 rows.Add(new { A = a, B = b });
             }
             lvBothSensors.ItemsSource = rows;
@@ -69,12 +56,9 @@ namespace MSSS
         {
             LoadData();
             ShowAllSensorData();
-            DisplayListboxData(_sensorA, lbSensorA);
-            DisplayListboxData(_sensorB, lbSensorB);
+            DisplayListboxData(_dataModel.SensorA, lbSensorA);
+            DisplayListboxData(_dataModel.SensorB, lbSensorB);
         }
-        private int NumberOfNodes(LinkedList<double> list) => list.Count;
-
-
         /// <summary>
         /// DisplayListboxData(list, listBox): binds the list’s values to the target ListBox.
         /// </summary>
@@ -82,72 +66,41 @@ namespace MSSS
         {
             listBox.ItemsSource = list.ToList(); // display-only conversion (algorithms do NOT use arrays/lists)
         }
-        private static bool IsSortedAscending(LinkedList<double> list)
-        {
-            if (list.Count < 2) return true;
-            var node = list.First;
-            while (node!.Next != null)
-            {
-                if (node.Value > node.Next!.Value) return false;
-                node = node.Next;
-            }
-            return true;
-        }
-        private bool SelectionSort(LinkedList<double> list)
-        {
-            ISortStrategy sorter = new SelectionSortStrategy();
-            return sorter.Sort(list);
-        }
-        private bool InsertionSort(LinkedList<double> list)
-        {
-            ISortStrategy sorter = new InsertionSortStrategy();
-            return sorter.Sort(list);
-        }
-        private int BinarySearchIterative(LinkedList<double> list, double value, int min, int max)
-        {
-            IBinarySearchStrategy searcher = new IterativeBinarySearchStrategy();
-            return searcher.Search(list, value, min, max);
-        }
-        private int BinarySearchRecursive(LinkedList<double> list, double value, int min, int max)
-        {
-            IBinarySearchStrategy searcher = new RecursiveBinarySearchStrategy();
-            return searcher.Search(list, value, min, max);
-        }
         private void btnSortASelection_Click(object sender, RoutedEventArgs e)
         {
             var sw = Stopwatch.StartNew();
-            SelectionSort(_sensorA);
+            _dataService.Sort(_dataModel.SensorA, SortAlgorithm.Selection);
             sw.Stop();
             tbSortASelectionMs.Text = sw.ElapsedMilliseconds.ToString();
             ShowAllSensorData();
-            DisplayListboxData(_sensorA, lbSensorA);
+            DisplayListboxData(_dataModel.SensorA, lbSensorA);
         }
         private void btnSortAInsertion_Click(object sender, RoutedEventArgs e)
         {
             var sw = Stopwatch.StartNew();
-            InsertionSort(_sensorA);
+            _dataService.Sort(_dataModel.SensorA, SortAlgorithm.Insertion);
             sw.Stop();
             tbSortAInsertionMs.Text = sw.ElapsedMilliseconds.ToString();
             ShowAllSensorData();
-            DisplayListboxData(_sensorA, lbSensorA);
+            DisplayListboxData(_dataModel.SensorA, lbSensorA);
         }
         private void btnSortBSelection_Click(object sender, RoutedEventArgs e)
         {
             var sw = Stopwatch.StartNew();
-            SelectionSort(_sensorB);
+            _dataService.Sort(_dataModel.SensorB, SortAlgorithm.Selection);
             sw.Stop();
             tbSortBSelectionMs.Text = sw.ElapsedMilliseconds.ToString();
             ShowAllSensorData();
-            DisplayListboxData(_sensorB, lbSensorB);
+            DisplayListboxData(_dataModel.SensorB, lbSensorB);
         }
         private void btnSortBInsertion_Click(object sender, RoutedEventArgs e)
         {
             var sw = Stopwatch.StartNew();
-            InsertionSort(_sensorB);
+            _dataService.Sort(_dataModel.SensorB, SortAlgorithm.Insertion);
             sw.Stop();
             tbSortBInsertionMs.Text = sw.ElapsedMilliseconds.ToString();
             ShowAllSensorData();
-            DisplayListboxData(_sensorB, lbSensorB);
+            DisplayListboxData(_dataModel.SensorB, lbSensorB);
         }
         private void btnRefreshBoth_Click(object sender, RoutedEventArgs e)
         {
@@ -155,62 +108,62 @@ namespace MSSS
         }
         private void btnSearchAIter_Click(object sender, RoutedEventArgs e)
         {
-            if (!IsSortedAscending(_sensorA)) { MessageBox.Show("Please sort Sensor A first."); return; }
+            if (!_dataService.IsSortedAscending(_dataModel.SensorA)) { MessageBox.Show("Please sort Sensor A first."); return; }
             if (!int.TryParse(tbSearchA.Text, out int searchInt)) { MessageBox.Show("Enter an integer for Search A."); return; }
 
 
             var sw = Stopwatch.StartNew();
-            int idx = BinarySearchIterative(_sensorA, searchInt, 0, NumberOfNodes(_sensorA));
+            int idx = _dataService.Search(_dataModel.SensorA, searchInt, SearchMode.Iterative);
             sw.Stop();
             tbSearchAIterTicks.Text = sw.ElapsedTicks.ToString();
 
 
-            DisplayListboxData(_sensorA, lbSensorA);
+            DisplayListboxData(_dataModel.SensorA, lbSensorA);
             HighlightNeighbours(lbSensorA, idx);
         }
         private void btnSearchARec_Click(object sender, RoutedEventArgs e)
         {
-            if (!IsSortedAscending(_sensorA)) { MessageBox.Show("Please sort Sensor A first."); return; }
+            if (!_dataService.IsSortedAscending(_dataModel.SensorA)) { MessageBox.Show("Please sort Sensor A first."); return; }
             if (!int.TryParse(tbSearchA.Text, out int searchInt)) { MessageBox.Show("Enter an integer for Search A."); return; }
 
 
             var sw = Stopwatch.StartNew();
-            int idx = BinarySearchRecursive(_sensorA, searchInt, 0, NumberOfNodes(_sensorA));
+            int idx = _dataService.Search(_dataModel.SensorA, searchInt, SearchMode.Recursive);
             sw.Stop();
             tbSearchARecTicks.Text = sw.ElapsedTicks.ToString();
 
 
-            DisplayListboxData(_sensorA, lbSensorA);
+            DisplayListboxData(_dataModel.SensorA, lbSensorA);
             HighlightNeighbours(lbSensorA, idx);
         }
         private void btnSearchBIter_Click(object sender, RoutedEventArgs e)
         {
-            if (!IsSortedAscending(_sensorB)) { MessageBox.Show("Please sort Sensor B first."); return; }
+            if (!_dataService.IsSortedAscending(_dataModel.SensorB)) { MessageBox.Show("Please sort Sensor B first."); return; }
             if (!int.TryParse(tbSearchB.Text, out int searchInt)) { MessageBox.Show("Enter an integer for Search B."); return; }
 
 
             var sw = Stopwatch.StartNew();
-            int idx = BinarySearchIterative(_sensorB, searchInt, 0, NumberOfNodes(_sensorB));
+            int idx = _dataService.Search(_dataModel.SensorB, searchInt, SearchMode.Iterative);
             sw.Stop();
             tbSearchBIterTicks.Text = sw.ElapsedTicks.ToString();
 
 
-            DisplayListboxData(_sensorB, lbSensorB);
+            DisplayListboxData(_dataModel.SensorB, lbSensorB);
             HighlightNeighbours(lbSensorB, idx);
         }
         private void btnSearchBRec_Click(object sender, RoutedEventArgs e)
         {
-            if (!IsSortedAscending(_sensorB)) { MessageBox.Show("Please sort Sensor B first."); return; }
+            if (!_dataService.IsSortedAscending(_dataModel.SensorB)) { MessageBox.Show("Please sort Sensor B first."); return; }
             if (!int.TryParse(tbSearchB.Text, out int searchInt)) { MessageBox.Show("Enter an integer for Search B."); return; }
 
 
             var sw = Stopwatch.StartNew();
-            int idx = BinarySearchRecursive(_sensorB, searchInt, 0, NumberOfNodes(_sensorB));
+            int idx = _dataService.Search(_dataModel.SensorB, searchInt, SearchMode.Recursive);
             sw.Stop();
             tbSearchBRecTicks.Text = sw.ElapsedTicks.ToString();
 
 
-            DisplayListboxData(_sensorB, lbSensorB);
+            DisplayListboxData(_dataModel.SensorB, lbSensorB);
             HighlightNeighbours(lbSensorB, idx);
         }
         // =======================
@@ -218,7 +171,7 @@ namespace MSSS
         // =======================
 
 
-        private static void HighlightNeighbours(ListBox lb, int centerIndex)
+        private void HighlightNeighbours(ListBox lb, int centerIndex)
         {
             lb.SelectedItems.Clear();
             for (int k = centerIndex - 2; k <= centerIndex + 2; k++)
@@ -229,12 +182,12 @@ namespace MSSS
             if (centerIndex >= 0 && centerIndex < lb.Items.Count)
                 lb.ScrollIntoView(lb.Items[centerIndex]);
         }
-        private static double ParseDouble(string text, double fallback)
-=> double.TryParse(text, out var v) ? v : fallback;
+        private double ParseDouble(string text, double fallback) =>
+            double.TryParse(text, out var v) ? v : fallback;
 
 
-        private static double Clamp(double v, double min, double max)
-        => v < min ? min : (v > max ? max : v);
+        private double Clamp(double v, double min, double max) =>
+            v < min ? min : (v > max ? max : v);
 
 
         // Restrict search TextBoxes to integer input only
