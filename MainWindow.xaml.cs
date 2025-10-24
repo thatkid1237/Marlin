@@ -108,7 +108,7 @@ namespace MSSS
         }
         private void btnSearchAIter_Click(object sender, RoutedEventArgs e)
         {
-            if (!_dataService.IsSortedAscending(_dataModel.SensorA)) { MessageBox.Show("Please sort Sensor A first."); return; }
+            if (!SensorDataService.IsSortedAscending(_dataModel.SensorA)) { MessageBox.Show("Please sort Sensor A first."); return; }
             if (!int.TryParse(tbSearchA.Text, out int searchInt)) { MessageBox.Show("Enter an integer for Search A."); return; }
 
 
@@ -123,7 +123,7 @@ namespace MSSS
         }
         private void btnSearchARec_Click(object sender, RoutedEventArgs e)
         {
-            if (!_dataService.IsSortedAscending(_dataModel.SensorA)) { MessageBox.Show("Please sort Sensor A first."); return; }
+            if (!SensorDataService.IsSortedAscending(_dataModel.SensorA)) { MessageBox.Show("Please sort Sensor A first."); return; }
             if (!int.TryParse(tbSearchA.Text, out int searchInt)) { MessageBox.Show("Enter an integer for Search A."); return; }
 
 
@@ -138,7 +138,7 @@ namespace MSSS
         }
         private void btnSearchBIter_Click(object sender, RoutedEventArgs e)
         {
-            if (!_dataService.IsSortedAscending(_dataModel.SensorB)) { MessageBox.Show("Please sort Sensor B first."); return; }
+            if (!SensorDataService.IsSortedAscending(_dataModel.SensorB)) { MessageBox.Show("Please sort Sensor B first."); return; }
             if (!int.TryParse(tbSearchB.Text, out int searchInt)) { MessageBox.Show("Enter an integer for Search B."); return; }
 
 
@@ -153,7 +153,7 @@ namespace MSSS
         }
         private void btnSearchBRec_Click(object sender, RoutedEventArgs e)
         {
-            if (!_dataService.IsSortedAscending(_dataModel.SensorB)) { MessageBox.Show("Please sort Sensor B first."); return; }
+            if (!SensorDataService.IsSortedAscending(_dataModel.SensorB)) { MessageBox.Show("Please sort Sensor B first."); return; }
             if (!int.TryParse(tbSearchB.Text, out int searchInt)) { MessageBox.Show("Enter an integer for Search B."); return; }
 
 

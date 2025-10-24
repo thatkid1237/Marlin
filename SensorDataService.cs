@@ -94,7 +94,7 @@ namespace MSSS
             return strategy.Search(list, value, 0, list.Count);
         }
 
-        public bool IsSortedAscending(LinkedList<double> list)
+        public static bool IsSortedAscending(LinkedList<double> list)
         {
             if (list == null) throw new ArgumentNullException(nameof(list));
             if (list.Count < 2) return true;
@@ -112,7 +112,7 @@ namespace MSSS
             return true;
         }
 
-        private void Populate(LinkedList<double> target, int count, Func<double> sampleProvider)
+        private static void Populate(LinkedList<double> target, int count, Func<double> sampleProvider)
         {
             target.Clear();
             for (int i = 0; i < count; i++)
