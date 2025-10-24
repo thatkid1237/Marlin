@@ -171,7 +171,7 @@ namespace MSSS
         // =======================
 
 
-        private static void HighlightNeighbours(ListBox lb, int centerIndex)
+        private void HighlightNeighbours(ListBox lb, int centerIndex)
         {
             lb.SelectedItems.Clear();
             for (int k = centerIndex - 2; k <= centerIndex + 2; k++)
@@ -182,12 +182,12 @@ namespace MSSS
             if (centerIndex >= 0 && centerIndex < lb.Items.Count)
                 lb.ScrollIntoView(lb.Items[centerIndex]);
         }
-        private static double ParseDouble(string text, double fallback)
-=> double.TryParse(text, out var v) ? v : fallback;
+        private double ParseDouble(string text, double fallback) =>
+            double.TryParse(text, out var v) ? v : fallback;
 
 
-        private static double Clamp(double v, double min, double max)
-        => v < min ? min : (v > max ? max : v);
+        private double Clamp(double v, double min, double max) =>
+            v < min ? min : (v > max ? max : v);
 
 
         // Restrict search TextBoxes to integer input only
